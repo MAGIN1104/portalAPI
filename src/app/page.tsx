@@ -23,6 +23,7 @@ import { RightPanel } from "@/components/portal/RightPanel";
 import { Sidebar } from "@/components/portal/Sidebar";
 import { SolicitudModal } from "@/components/portal/SolicitudModal";
 import type { SolicitudForm } from "@/portal/domain/solicitud";
+import type { ApiCatalogPort } from "@/portal/application/ports/ApiCatalogPort";
 
 type RunMeta = {
   status: number;
@@ -30,12 +31,17 @@ type RunMeta = {
   timestamp: string;
 };
 
+type CatalogMap = ReturnType<typeof apiCatalog.getAll>;
+
 const environments = environmentPort.getAll();
 const supportChannels = supportInfoPort.getSupportChannels();
 const faqs = supportInfoPort.getFaqs();
 const menuSections = menuSectionsPort.getSections();
 
 export default function Home() {
+  const [catalogData, setCatalogData] = useState<CatalogMap>(() =>
+    apiCatalog.getAll()
+  );
   const [activeApiKey, setActiveApiKey] = useState("auth");
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
   const [consoleOpen, setConsoleOpen] = useState(false);
@@ -59,9 +65,17 @@ export default function Home() {
   const [theme, setTheme] = useState<"dark" | "light">("dark");
   const [lastRunMeta, setLastRunMeta] = useState<RunMeta | undefined>(undefined);
   const [selectedEnvironment] = useState("sandbox");
+  const catalogPort = useMemo<ApiCatalogPort>(
+    () => ({
+      getAll: () => catalogData,
+      getByKey: (key) => catalogData[key],
+    }),
+    [catalogData]
+  );
+
   const activeApi = useMemo(
-    () => getActiveApi(apiCatalog, activeApiKey),
-    [activeApiKey]
+    () => getActiveApi(catalogPort, activeApiKey),
+    [activeApiKey, catalogPort]
   );
 
   const environmentInfo = useMemo(
@@ -97,7 +111,7 @@ export default function Home() {
   };
 
   const handleApiClick = (itemId: string, enabled: boolean) => {
-    if (!enabled || !apiCatalog.getByKey(itemId)) {
+    if (!enabled || !catalogPort.getByKey(itemId)) {
       return;
     }
     setActiveApiKey(itemId);
@@ -185,6 +199,24 @@ export default function Home() {
     document.documentElement.dataset.theme = initial;
   }, []);
 
+  useEffect(() => {
+    const loadCatalog = async () => {
+      try {
+        const response = await fetch("/api/catalog", { cache: "no-store" });
+        if (!response.ok) {
+          return;
+        }
+        const data = (await response.json()) as CatalogMap;
+        if (data && Object.keys(data).length > 0) {
+          setCatalogData(data);
+        }
+      } catch {
+        // Keep fallback in-memory catalog.
+      }
+    };
+    loadCatalog();
+  }, []);
+
   const toggleTheme = () => {
     const next = theme === "dark" ? "light" : "dark";
     setTheme(next);
@@ -241,7 +273,7 @@ export default function Home() {
       onToggleSection={toggleSection}
       onApiClick={handleApiClick}
       methodBadgeClass={methodBadgeClass}
-      apiDefinitions={apiCatalog.getAll()}
+      apiDefinitions={catalogPort.getAll()}
     />
   );
 

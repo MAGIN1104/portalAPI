@@ -1,0 +1,26 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model ApiDefinition {
+  id           String   @id @default(cuid())
+  key          String   @unique
+  title        String
+  method       String
+  path         String
+  description  String
+  sandbox      String
+  headers      Json
+  fields       Json
+  requiresAuth Boolean  @default(false)
+  request      String
+  response     String
+  responses    Json
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}

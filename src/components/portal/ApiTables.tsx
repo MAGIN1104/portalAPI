@@ -34,7 +34,7 @@ export function ApiTables({ activeApi }: ApiTablesProps) {
                 <th className="px-4 py-2 text-left">Campo</th>
                 <th className="px-4 py-2 text-left">Tipo</th>
                 <th className="px-4 py-2 text-left">Descripcion</th>
-                <th className="px-4 py-2 text-left">Formato</th>
+                {/* <th className="px-4 py-2 text-left">Formato</th> */}
               </tr>
             </thead>
             <tbody>
@@ -47,9 +47,9 @@ export function ApiTables({ activeApi }: ApiTablesProps) {
                     {field.type ?? "string"}
                   </td>
                   <td className="px-4 py-2 text-muted">{field.label}</td>
-                  <td className="px-4 py-2 text-xs text-muted">
+                  {/* <td className="px-4 py-2 text-xs text-muted">
                     {field.helper ?? field.pattern ?? "-"}
-                  </td>
+                  </td> */}
                 </tr>
               ))}
             </tbody>
