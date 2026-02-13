@@ -1,7 +1,15 @@
 {
-  "/admin/apis/page": "app/admin/apis/page.js",
+  "/_not-found/page": "app/_not-found/page.js",
+  "/api/auth-groups/route": "app/api/auth-groups/route.js",
+  "/api/auth/login/route": "app/api/auth/login/route.js",
+  "/api/auth-types/route": "app/api/auth-types/route.js",
+  "/api/config/route": "app/api/config/route.js",
+  "/api/endpoints/route": "app/api/endpoints/route.js",
+  "/login/page": "app/login/page.js",
+  "/page": "app/page.js",
   "/admin/dashboard/page": "app/admin/dashboard/page.js",
-  "/admin/endpoints/page": "app/admin/endpoints/page.js",
+  "/admin/settings/page": "app/admin/settings/page.js",
   "/admin/menu/page": "app/admin/menu/page.js",
-  "/page": "app/page.js"
+  "/admin/apis/page": "app/admin/apis/page.js",
+  "/admin/endpoints/page": "app/admin/endpoints/page.js"
 }

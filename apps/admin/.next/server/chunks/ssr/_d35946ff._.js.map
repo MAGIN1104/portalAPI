@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": [],
-  "sections": [
-    {"offset": {"line": 4, "column": 0}, "map": {"version":3,"sources":["file:///D:/projects/REACT/fie-api-portal/apps/admin/src/app/page.tsx"],"sourcesContent":["\"use client\";\r\n\r\nexport default function Home() {\r\n  return (\r\n    <main className=\"flex min-h-screen flex-col items-center justify-center p-24\">\r\n      <div className=\"text-center\">\r\n        <h1 className=\"text-4xl font-bold mb-4\">FIE API Admin</h1>\r\n        <p className=\"text-xl text-gray-600\">\r\n          Panel de administración para gestionar APIs\r\n        </p>\r\n        <p className=\"text-gray-500 mt-4\">\r\n          Funcionalidad en desarrollo...\r\n        </p>\r\n      </div>\r\n    </main>\r\n  );\r\n}\r\n"],"names":[],"mappings":";;;;;AAAA;;AAEe,SAAS;IACtB,qBACE,8OAAC;QAAK,WAAU;kBACd,cAAA,8OAAC;YAAI,WAAU;;8BACb,8OAAC;oBAAG,WAAU;8BAA0B;;;;;;8BACxC,8OAAC;oBAAE,WAAU;8BAAwB;;;;;;8BAGrC,8OAAC;oBAAE,WAAU;8BAAqB;;;;;;;;;;;;;;;;;AAM1C","debugId":null}},
-    {"offset": {"line": 57, "column": 0}, "map": {"version":3,"sources":["file:///D:/projects/REACT/fie-api-portal/node_modules/next/src/server/route-modules/app-page/vendored/ssr/react-jsx-dev-runtime.ts"],"sourcesContent":["module.exports = (\n  require('../../module.compiled') as typeof import('../../module.compiled')\n).vendored['react-ssr']!.ReactJsxDevRuntime\n"],"names":["module","exports","require","vendored","ReactJsxDevRuntime"],"mappings":"AAAAA,OAAOC,OAAO,GACZC,QAAQ,4HACRC,QAAQ,CAAC,YAAY,CAAEC,kBAAkB","ignoreList":[0],"debugId":null}}]
-}
