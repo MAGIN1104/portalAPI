@@ -1,5 +1,2 @@
-export type {
-  ApiDefinition,
-  ApiField,
-  ApiResponse,
-} from "@/portal/domain/api";
+// Tipos globales movidos a packages/types/api.ts
+export * from '../../../../packages/types/api';
