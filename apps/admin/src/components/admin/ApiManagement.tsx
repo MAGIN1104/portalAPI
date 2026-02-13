@@ -1,100 +1,95 @@
 'use client';
 
-import { useState } from 'react';
-
-interface API {
-  id: string;
-  name: string;
-  description: string;
-  baseUrl: string;
-  version: string;
-  status: 'active' | 'inactive' | 'deprecated';
-  createdAt: string;
-}
+import { useState, useEffect } from 'react';
+import { saveApiDefinitionsForPortal, loadApiDefinitionsForPortal } from '@/lib/data-sync-service';
+import type { ApiDefinition } from '@/lib/types';
 
 export const ApiManagement: React.FC = () => {
-  const [apis, setApis] = useState<API[]>([
-    {
-      id: '1',
-      name: 'Auth API',
-      description: 'Autenticación y autorización',
-      baseUrl: '/api/v1/auth',
-      version: '1.0',
-      status: 'active',
-      createdAt: '2024-01-15',
-    },
-    {
-      id: '2',
-      name: 'Users API',
-      description: 'Gestión de usuarios',
-      baseUrl: '/api/v1/users',
-      version: '1.0',
-      status: 'active',
-      createdAt: '2024-01-10',
-    },
-  ]);
-
+  const [apis, setApis] = useState<Record<string, ApiDefinition>>({});
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [formData, setFormData] = useState({
-    name: '',
+  const [formData, setFormData] = useState<ApiDefinition>({
+    title: '',
+    method: 'GET',
+    path: '',
     description: '',
-    baseUrl: '',
-    version: '1.0',
+    sandbox: '',
+    headers: [['Content-Type', 'application/json']],
+    fields: [],
+    requiresAuth: false,
+    request: '',
+    response: '',
+    responses: [],
   });
+
+  // Cargar API definitions al montar
+  useEffect(() => {
+    const loaded = loadApiDefinitionsForPortal();
+    setApis(loaded);
+  }, []);
 
   const handleAdd = () => {
     setEditingId(null);
-    setFormData({ name: '', description: '', baseUrl: '', version: '1.0' });
-    setShowForm(true);
-  };
-
-  const handleEdit = (api: API) => {
-    setEditingId(api.id);
     setFormData({
-      name: api.name,
-      description: api.description,
-      baseUrl: api.baseUrl,
-      version: api.version,
+      title: '',
+      method: 'GET',
+      path: '',
+      description: '',
+      sandbox: '',
+      headers: [['Content-Type', 'application/json']],
+      fields: [],
+      requiresAuth: false,
+      request: '',
+      response: '',
+      responses: [],
     });
     setShowForm(true);
   };
 
+  const handleEdit = (id: string, api: ApiDefinition) => {
+    setEditingId(id);
+    setFormData(api);
+    setShowForm(true);
+  };
+
   const handleDelete = (id: string) => {
-    if (window.confirm('¿Estás seguro?')) {
-      setApis(apis.filter((api) => api.id !== id));
+    if (window.confirm('¿Estás seguro de que quieres eliminar este endpoint?')) {
+      const updated = { ...apis };
+      delete updated[id];
+      setApis(updated);
+      saveApiDefinitionsForPortal(updated);
     }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    const updated = { ...apis };
     
     if (editingId) {
-      setApis(
-        apis.map((api) =>
-          api.id === editingId
-            ? { ...api, ...formData }
-            : api
-        )
-      );
+      updated[editingId] = { ...formData, id: editingId };
     } else {
-      const newApi: API = {
-        id: Date.now().toString(),
-        ...formData,
-        status: 'inactive',
-        createdAt: new Date().toISOString().split('T')[0],
-      };
-      setApis([...apis, newApi]);
+      const newId = Date.now().toString();
+      updated[newId] = { ...formData, id: newId };
     }
     
+    setApis(updated);
+    saveApiDefinitionsForPortal(updated);
     setShowForm(false);
-    setFormData({ name: '', description: '', baseUrl: '', version: '1.0' });
+  };
+
+  const methodColors: Record<string, string> = {
+    GET: 'rgba(99, 164, 255, 0.2)',
+    POST: 'rgba(99, 164, 255, 0.15)',
+    PUT: 'rgba(223, 21, 131, 0.15)',
+    DELETE: 'rgba(223, 21, 131, 0.2)',
+    PATCH: 'rgba(99, 164, 255, 0.1)',
   };
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h3 className="font-display text-xl font-bold" style={{ color: 'var(--foreground)' }}>APIs Disponibles</h3>
+        <h3 className="font-display text-xl font-bold" style={{ color: 'var(--foreground)' }}>Endpoints</h3>
         <button
           onClick={handleAdd}
           className="text-white px-6 py-2 rounded-lg transition"
@@ -102,7 +97,7 @@ export const ApiManagement: React.FC = () => {
           onMouseEnter={(e) => (e.currentTarget.style.opacity = '0.9')}
           onMouseLeave={(e) => (e.currentTarget.style.opacity = '1')}
         >
-          + Nueva API
+          + Nuevo Endpoint
         </button>
       </div>
 
@@ -114,32 +109,67 @@ export const ApiManagement: React.FC = () => {
           onClick={() => setShowForm(false)}
         >
           <div 
-            className="rounded-lg p-8 w-full max-w-md" 
+            className="rounded-lg p-8 w-full max-w-2xl max-h-[90vh] overflow-y-auto" 
             style={{ backgroundColor: 'var(--panel)' }}
             onClick={(e) => e.stopPropagation()}
           >
             <h4 className="font-display text-lg font-bold mb-4" style={{ color: 'var(--foreground)' }}>
-              {editingId ? 'Editar API' : 'Nueva API'}
+              {editingId ? 'Editar Endpoint' : 'Nuevo Endpoint'}
             </h4>
             
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium mb-1" style={{ color: 'var(--foreground)' }}>
-                  Nombre
+                  Título
                 </label>
                 <input
                   type="text"
-                  value={formData.name}
-                  onChange={(e) =>
-                    setFormData({ ...formData, name: e.target.value })
-                  }
+                  value={formData.title}
+                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                   required
                   className="w-full px-3 py-2 border rounded-lg transition"
                   style={{ borderColor: 'var(--stroke)', backgroundColor: 'var(--background)', color: 'var(--foreground)' }}
                   onFocus={(e) => (e.currentTarget.style.borderColor = 'var(--primary)')}
                   onBlur={(e) => (e.currentTarget.style.borderColor = 'var(--stroke)')}
-                  placeholder="Ej: Payments API"
+                  placeholder="Ej: Login de usuario"
                 />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1" style={{ color: 'var(--foreground)' }}>
+                    Método
+                  </label>
+                  <select
+                    value={formData.method}
+                    onChange={(e) => setFormData({ ...formData, method: e.target.value })}
+                    className="w-full px-3 py-2 border rounded-lg transition"
+                    style={{ borderColor: 'var(--stroke)', backgroundColor: 'var(--background)', color: 'var(--foreground)' }}
+                  >
+                    <option>GET</option>
+                    <option>POST</option>
+                    <option>PUT</option>
+                    <option>DELETE</option>
+                    <option>PATCH</option>
+                  </select>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium mb-1" style={{ color: 'var(--foreground)' }}>
+                    Path
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.path}
+                    onChange={(e) => setFormData({ ...formData, path: e.target.value })}
+                    required
+                    className="w-full px-3 py-2 border rounded-lg transition"
+                    style={{ borderColor: 'var(--stroke)', backgroundColor: 'var(--background)', color: 'var(--foreground)' }}
+                    onFocus={(e) => (e.currentTarget.style.borderColor = 'var(--primary)')}
+                    onBlur={(e) => (e.currentTarget.style.borderColor = 'var(--stroke)')}
+                    placeholder="/v1/login"
+                  />
+                </div>
               </div>
 
               <div>
@@ -148,54 +178,70 @@ export const ApiManagement: React.FC = () => {
                 </label>
                 <textarea
                   value={formData.description}
-                  onChange={(e) =>
-                    setFormData({ ...formData, description: e.target.value })
-                  }
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   required
                   className="w-full px-3 py-2 border rounded-lg transition"
                   style={{ borderColor: 'var(--stroke)', backgroundColor: 'var(--background)', color: 'var(--foreground)' }}
                   onFocus={(e) => (e.currentTarget.style.borderColor = 'var(--primary)')}
                   onBlur={(e) => (e.currentTarget.style.borderColor = 'var(--stroke)')}
-                  placeholder="Descripción de la API"
-                  rows={3}
+                  placeholder="Descripción del endpoint"
+                  rows={2}
                 />
               </div>
 
               <div>
                 <label className="block text-sm font-medium mb-1" style={{ color: 'var(--foreground)' }}>
-                  Base URL
+                  URL Sandbox
                 </label>
                 <input
                   type="text"
-                  value={formData.baseUrl}
-                  onChange={(e) =>
-                    setFormData({ ...formData, baseUrl: e.target.value })
-                  }
+                  value={formData.sandbox}
+                  onChange={(e) => setFormData({ ...formData, sandbox: e.target.value })}
                   required
                   className="w-full px-3 py-2 border rounded-lg transition"
                   style={{ borderColor: 'var(--stroke)', backgroundColor: 'var(--background)', color: 'var(--foreground)' }}
                   onFocus={(e) => (e.currentTarget.style.borderColor = 'var(--primary)')}
                   onBlur={(e) => (e.currentTarget.style.borderColor = 'var(--stroke)')}
-                  placeholder="Ej: /api/v1/payments"
+                  placeholder="https://sandbox.example.com"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-1" style={{ color: 'var(--foreground)' }}>
-                  Versión
+                <label className="flex items-center gap-2" style={{ color: 'var(--foreground)' }}>
+                  <input
+                    type="checkbox"
+                    checked={formData.requiresAuth}
+                    onChange={(e) => setFormData({ ...formData, requiresAuth: e.target.checked })}
+                  />
+                  <span className="text-sm font-medium">Requiere autenticación</span>
                 </label>
-                <input
-                  type="text"
-                  value={formData.version}
-                  onChange={(e) =>
-                    setFormData({ ...formData, version: e.target.value })
-                  }
-                  className="w-full px-3 py-2 border rounded-lg transition"
-                  style={{ borderColor: 'var(--stroke)', backgroundColor: 'var(--background)', color: 'var(--foreground)' }}
-                  onFocus={(e) => (e.currentTarget.style.borderColor = 'var(--primary)')}
-                  onBlur={(e) => (e.currentTarget.style.borderColor = 'var(--stroke)')}
-                  placeholder="Ej: 1.0"
-                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1" style={{ color: 'var(--foreground)' }}>
+                    Request (JSON)
+                  </label>
+                  <textarea
+                    value={formData.request}
+                    onChange={(e) => setFormData({ ...formData, request: e.target.value })}
+                    className="w-full px-3 py-2 border rounded-lg font-mono text-xs transition"
+                    style={{ borderColor: 'var(--stroke)', backgroundColor: 'var(--background)', color: 'var(--foreground)' }}
+                    rows={4}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1" style={{ color: 'var(--foreground)' }}>
+                    Response (JSON)
+                  </label>
+                  <textarea
+                    value={formData.response}
+                    onChange={(e) => setFormData({ ...formData, response: e.target.value })}
+                    className="w-full px-3 py-2 border rounded-lg font-mono text-xs transition"
+                    style={{ borderColor: 'var(--stroke)', backgroundColor: 'var(--background)', color: 'var(--foreground)' }}
+                    rows={4}
+                  />
+                </div>
               </div>
 
               <div className="flex gap-3 pt-4">
@@ -224,81 +270,58 @@ export const ApiManagement: React.FC = () => {
         </div>
       )}
 
-      {/* APIs Table */}
-      <div className="rounded-lg shadow overflow-hidden" style={{ backgroundColor: 'var(--panel)' }}>
-        <table className="w-full">
-          <thead className="border-b" style={{ backgroundColor: 'var(--panel-strong)', borderColor: 'var(--stroke)' }}>
-            <tr>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">
-                Nombre
-              </th>
-              <th className="px-6 py-3 text-left text-sm font-semibold" style={{ color: 'var(--foreground)' }}>
-                Descripción
-              </th>
-              <th className="px-6 py-3 text-left text-sm font-semibold" style={{ color: 'var(--foreground)' }}>
-                Base URL
-              </th>
-              <th className="px-6 py-3 text-left text-sm font-semibold" style={{ color: 'var(--foreground)' }}>
-                Estado
-              </th>
-              <th className="px-6 py-3 text-left text-sm font-semibold" style={{ color: 'var(--foreground)' }}>
-                Acciones
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {apis.map((api) => (
-              <tr key={api.id} className="border-b transition" style={{ borderColor: 'var(--stroke)' }}
-                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--panel-strong)')}
-                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}>
-
-                <td className="px-6 py-4 font-medium" style={{ color: 'var(--foreground)' }}>{api.name}</td>
-                <td className="px-6 py-4 text-sm" style={{ color: 'var(--muted)' }}>{api.description}</td>
-                <td className="px-6 py-4 text-sm font-mono" style={{ color: 'var(--muted)' }}>{api.baseUrl}</td>
-                <td className="px-6 py-4">
-                  <span
-                    className="px-3 py-1 rounded-full text-xs font-medium"
-                    style={{
-                      backgroundColor: api.status === 'active' 
-                        ? 'rgba(99, 164, 255, 0.2)'
-                        : api.status === 'deprecated'
-                          ? 'rgba(223, 21, 131, 0.2)'
-                          : 'var(--panel-strong)',
-                      color: api.status === 'active'
-                        ? 'var(--primary)'
-                        : api.status === 'deprecated'
-                          ? 'var(--accent)'
-                          : 'var(--muted)'
-                    }}
-                  >
-                    {api.status}
-                  </span>
-                </td>
-                <td className="px-6 py-4 space-x-3">
+      {/* Endpoints List */}
+      <div className="space-y-3">
+        {Object.entries(apis).length === 0 ? (
+          <div className="p-8 text-center rounded-lg" style={{ backgroundColor: 'var(--panel)', color: 'var(--muted)' }}>
+            No hay endpoints creados. ¡Crea el primero!
+          </div>
+        ) : (
+          Object.entries(apis).map(([id, api]) => (
+            <div 
+              key={id}
+              className="p-4 rounded-lg border transition"
+              style={{ backgroundColor: 'var(--panel)', borderColor: 'var(--stroke)' }}
+              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--panel-strong)')}
+              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'var(--panel)')}
+            >
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center gap-3 mb-2">
+                    <span
+                      className="px-2 py-1 rounded text-xs font-bold text-white"
+                      style={{ backgroundColor: methodColors[api.method] || 'var(--primary)' }}
+                    >
+                      {api.method}
+                    </span>
+                    <span className="font-mono text-sm" style={{ color: 'var(--muted)' }}>{api.path}</span>
+                  </div>
+                  <h4 className="font-medium text-base" style={{ color: 'var(--foreground)' }}>{api.title}</h4>
+                  <p className="text-sm mt-1" style={{ color: 'var(--muted)' }}>{api.description}</p>
+                </div>
+                <div className="flex gap-2">
                   <button
-                    onClick={() => handleEdit(api)}
-                    className="hover:underline text-sm transition"
-                    style={{ color: 'var(--primary)' }}
+                    onClick={() => handleEdit(id, api)}
+                    className="px-3 py-1 text-sm rounded transition"
+                    style={{ backgroundColor: 'var(--primary)', color: 'white' }}
+                    onMouseEnter={(e) => (e.currentTarget.style.opacity = '0.8')}
+                    onMouseLeave={(e) => (e.currentTarget.style.opacity = '1')}
                   >
                     Editar
                   </button>
                   <button
-                    onClick={() => handleDelete(api.id)}
-                    className="hover:underline text-sm transition"
-                    style={{ color: 'var(--accent)' }}
+                    onClick={() => handleDelete(id)}
+                    className="px-3 py-1 text-sm rounded transition"
+                    style={{ backgroundColor: 'var(--accent)', color: 'white' }}
+                    onMouseEnter={(e) => (e.currentTarget.style.opacity = '0.8')}
+                    onMouseLeave={(e) => (e.currentTarget.style.opacity = '1')}
                   >
                     Eliminar
                   </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-
-        {apis.length === 0 && (
-          <div className="p-8 text-center" style={{ color: 'var(--muted)' }}>
-            No hay APIs creadas. ¡Crea la primera!
-          </div>
+                </div>
+              </div>
+            </div>
+          ))
         )}
       </div>
     </div>

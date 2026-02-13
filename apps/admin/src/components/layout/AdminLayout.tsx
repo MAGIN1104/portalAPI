@@ -43,7 +43,6 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children, title = '' }
   };
 
   const menuItems = [
-    { name: 'Inicio', href: '/admin/dashboard' },
     { name: 'APIs', href: '/admin/apis' },
     { name: 'Endpoints', href: '/admin/endpoints' },
     { name: 'Grupos', href: '/admin/menu' },

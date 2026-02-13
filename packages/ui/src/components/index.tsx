@@ -6,6 +6,9 @@
 
 import React from 'react';
 
+export { LoginForm } from './LoginForm';
+export { ProtectedRoute } from './ProtectedRoute';
+
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   children: React.ReactNode;
   variant?: 'primary' | 'secondary' | 'danger' | 'ghost';

@@ -7,6 +7,7 @@ import {
   type AdminMenuSection,
 } from "@/lib/menu-sections-data";
 import { loadMenuSections, saveMenuSections } from "@/lib/menu-sections-store";
+import { saveMenuSectionsForPortal } from "@/lib/data-sync-service";
 
 const buildEmptyItem = (): AdminMenuItem => ({ id: "", label: "", enabled: true });
 
@@ -22,7 +23,10 @@ export const MenuSectionsManagement = () => {
   }, []);
 
   useEffect(() => {
+    // Guardar en localStorage del admin
     saveMenuSections(sections);
+    // Sincronizar al portal
+    saveMenuSectionsForPortal(sections);
   }, [sections]);
 
   const sectionIds = useMemo(() => new Set(sections.map((section) => section.id)), [sections]);

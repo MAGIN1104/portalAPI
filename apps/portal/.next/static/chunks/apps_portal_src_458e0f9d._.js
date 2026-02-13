@@ -6,12 +6,27 @@ __turbopack_context__.s([
     "apiDefinitions",
     ()=>apiDefinitions
 ]);
-const apiDefinitions = {
+// Cargar desde localStorage si están disponibles (sincronizados por el admin)
+const loadFromSync = ()=>{
+    if ("TURBOPACK compile-time falsy", 0) //TURBOPACK unreachable
+    ;
+    try {
+        const raw = window.localStorage.getItem('fie-api-definitions');
+        if (raw) {
+            return JSON.parse(raw);
+        }
+    } catch (error) {
+        console.warn('Error cargando API definitions sincronizadas:', error);
+    }
+    return {};
+};
+// Fallback: datos por defecto
+const defaultApiDefinitions = {
     auth: {
         title: "Servicio de Autenticacion",
         method: "POST",
         path: "/onboarding/v1.0/noa/login",
-        description: "Permite autenticar a una empresa y obtener tokens necesarios para consumir servicios B2B.",
+        description: "Permite autenticar y obtener tokens.",
         sandbox: "https://sandbox.fiedemo.com.bo",
         headers: [
             [
@@ -20,242 +35,21 @@ const apiDefinitions = {
             ]
         ],
         requiresAuth: false,
-        fields: [
-            {
-                name: "loginName",
-                label: "Usuario de la empresa",
-                required: true,
-                placeholder: ""
-            },
-            {
-                name: "password",
-                label: "Contrasena",
-                type: "string",
-                required: true,
-                placeholder: ""
-            },
-            {
-                name: "idDevice",
-                label: "Identificador del dispositivo origen",
-                required: true,
-                placeholder: ""
-            },
-            {
-                name: "idBusiness",
-                label: "Identificador unico de la empresa",
-                required: true,
-                placeholder: ""
-            }
-        ],
-        request: '{\n  "loginName": "usuarioEmpresa",\n  "password": "Abc#1234",\n  "idDevice": "f5756dcc-906f-450f-83e7-816c302948f7",\n  "idBusiness": "f5756dcc-906f-450f-83e7-816c302948f7"\n}',
-        response: '{\n  "transactionId": "3d69cc42-25ae-4dad-8da1-6bfceb9a4c67",\n  "result": {\n    "authInfo": {\n      "session": "d2da033a-cf9c-4ca3-b667-f71ebca04f49",\n      "accessToken": "sdEAtgdEAtgdEAtgdEAtg",\n      "expiresIn": 60,\n      "refreshToken": "eyJhbGnZFfPGcnZFfPGcnZFfPGcnZFfPGc",\n      "refreshExpiresIn": 170\n    }\n  }\n}',
+        fields: [],
+        request: "{}",
+        response: "{}",
         responses: [
             {
                 code: 200,
                 label: "OK",
                 mediaType: "application/json",
-                example: '{\n  "transactionId": "string",\n  "result": {},\n  "timestamp": "2026-02-06T15:23:37.677Z"\n}',
-                schema: '{\n  "transactionId": "string",\n  "result": {},\n  "timestamp": "2026-02-06T15:23:37.677Z"\n}'
-            },
-            {
-                code: 400,
-                label: "Bad Request",
-                mediaType: "application/json",
-                example: '{\n    "code": "000800",\n    "message": "Búsqueda sin resultados.",\n    "reference": "https://sandbox.fie/api/listObservedOperation"\n}',
-                schema: '{\n  "code": "string",\n  "message": "string",\n  "reference": "string",\n  "transactionId": "string"\n}'
-            },
-            {
-                code: 500,
-                label: "Internal Server Error",
-                mediaType: "application/json",
-                example: '{\n    "code": "810",\n    "message": "El servicio solicitado no se encuentra disponible, por favor intente mas tarde",\n    "cause": "Error on consume API REST - On Extract CustomException",\n    "reference": "https://sandbox.fie/api/listObservedOperation"\n}',
-                schema: '{\n  "code": "string",\n  "message": "string",\n  "cause": "string",\n  "reference": "string",\n  "transactionId": "string"\n}'
-            }
-        ]
-    },
-    generateQR: {
-        title: "Servicio de Generacion QR",
-        method: "PUT",
-        path: "/paymentasaservice/v1.0/generateQ",
-        description: "Genera un codigo QR para pagos electronicos.",
-        sandbox: "https://sandbox.fiedemo.com.bo",
-        headers: [
-            [
-                "Content-Type",
-                "application/json"
-            ],
-            [
-                "Authorization",
-                "Bearer Token"
-            ]
-        ],
-        requiresAuth: true,
-        fields: [
-            {
-                name: "transactionId",
-                label: "ID de transaccion desde autenticacion",
-                required: true,
-                placeholder: "3d69cc42-25ae-4dad-8da1-6bfceb9a4c67"
-            },
-            {
-                name: "accessToken",
-                label: "Token de acceso",
-                required: true,
-                placeholder: "eyJ..."
-            },
-            {
-                name: "recOwner",
-                label: "Nombre del beneficiario",
-                required: true,
-                placeholder: "JUAN PEREZ"
-            },
-            {
-                name: "documentNumber",
-                label: "Documento del beneficiario",
-                required: true,
-                placeholder: "7040877"
-            },
-            {
-                name: "phone",
-                label: "Telefono del beneficiario",
-                type: "string",
-                required: true,
-                placeholder: "71902157"
-            },
-            {
-                name: "recAccount",
-                label: "Numero de cuenta receptora",
-                required: true,
-                placeholder: "40015047001"
-            },
-            {
-                name: "currency",
-                label: "Moneda",
-                required: true,
-                placeholder: "BOB"
-            },
-            {
-                name: "amount",
-                label: "Monto",
-                type: "number",
-                required: true,
-                placeholder: "1000"
-            },
-            {
-                name: "reference",
-                label: "Referencia del concepto",
-                placeholder: "Carga de Credito"
-            },
-            {
-                name: "expirationDate",
-                label: "Fecha expiracion",
-                type: "string",
-                required: true,
-                placeholder: "2025-12-31"
-            },
-            {
-                name: "uniqueUse",
-                label: "Uso unico",
-                required: true,
-                placeholder: "0"
-            },
-            {
-                name: "serviceCode",
-                label: "Codigo de servicio",
-                required: true,
-                placeholder: "8877"
-            }
-        ],
-        request: '{\n  "transactionId": "...",\n  "accessToken": "...",\n  "recOwner": "JUAN PEREZ",\n  "documentNumber": "7040877",\n  "phone": "71902157",\n  "recAccount": "40015047001",\n  "currency": "BOB",\n  "amount": "1000",\n  "reference": "Carga de Credito",\n  "expirationDate": "2025-12-31",\n  "uniqueUse": "0",\n  "serviceCode": "8877"\n}',
-        response: '{\n  "transactionId": "3d69cc42-25ae-4dad-8da1-6bfceb9a4c67",\n  "result": {\n    "code": "0000",\n    "description": "Success",\n    "result": "INn5NfOGqpUKarZdx0vHjsulplz9ca8DnEgtZzlfw==|46509df2",\n    "idQr": "25050301033171857027"\n  },\n  "timestamp": "2025-10-27T18:54:03.669Z"\n}',
-        responses: [
-            {
-                code: 200,
-                label: "OK",
-                mediaType: "application/json",
-                example: '{\n  "transactionId": "string",\n  "result": {\n    "code": "0000",\n    "description": "Success",\n    "result": "INn5NfOGqpUKarZdx0vHjsulplz9ca8DnEgtZzlfw==|46509df2",\n    "idQr": "25050301033171857027"\n  },\n  "timestamp": "2025-10-27T18:54:03.669Z"\n}',
-                schema: '{\n  "transactionId": "string",\n  "result": {\n    "code": "string",\n    "description": "string",\n    "result": "string",\n    "idQr": "string"\n  },\n  "timestamp": "string"\n}'
-            },
-            {
-                code: 400,
-                label: "Bad Request",
-                mediaType: "application/json",
-                example: '{\n  "code": "string",\n  "message": "string",\n  "cause": "string",\n  "reference": "string",\n  "transactionId": "string"\n}',
-                schema: '{\n  "code": "string",\n  "message": "string",\n  "cause": "string",\n  "reference": "string",\n  "transactionId": "string"\n}'
-            },
-            {
-                code: 500,
-                label: "Internal Server Error",
-                mediaType: "application/json",
-                example: '{\n  "code": "string",\n  "message": "string",\n  "cause": "string",\n  "reference": "string",\n  "transactionId": "string"\n}',
-                schema: '{\n  "code": "string",\n  "message": "string",\n  "cause": "string",\n  "reference": "string",\n  "transactionId": "string"\n}'
-            }
-        ]
-    },
-    stateQR: {
-        title: "Servicio Estado QR",
-        method: "GET",
-        path: "/paymentasaservice/v1.0/stateQR",
-        description: "Consulta el estado de un QR generado.",
-        sandbox: "https://sandbox.fiedemo.com.bo",
-        headers: [
-            [
-                "Content-Type",
-                "application/json"
-            ],
-            [
-                "Authorization",
-                "Bearer Token"
-            ]
-        ],
-        requiresAuth: true,
-        fields: [
-            {
-                name: "transactionId",
-                label: "ID de transaccion",
-                required: true,
-                placeholder: "3d69cc42-25ae-4dad-8da1-6bfceb9a4c67"
-            },
-            {
-                name: "accessToken",
-                label: "Token de acceso",
-                required: true,
-                placeholder: "eyJ..."
-            },
-            {
-                name: "idQr",
-                label: "Identificador del QR",
-                required: true,
-                placeholder: "25050301033171857027"
-            }
-        ],
-        request: '{\n  "transactionId": "...",\n  "accessToken": "...",\n  "idQr": "25050301033171857027"\n}',
-        response: '{\n  "result": {\n    "state": "PA"\n  }\n}',
-        responses: [
-            {
-                code: 200,
-                label: "OK",
-                mediaType: "application/json",
-                example: '{\n  "result": {\n    "state": "PA"\n  }\n}',
-                schema: '{\n  "result": {\n    "state": "string"\n  }\n}'
-            },
-            {
-                code: 400,
-                label: "Bad Request",
-                mediaType: "application/json",
-                example: '{\n  "code": "string",\n  "message": "string",\n  "cause": "string",\n  "reference": "string",\n  "transactionId": "string"\n}',
-                schema: '{\n  "code": "string",\n  "message": "string",\n  "cause": "string",\n  "reference": "string",\n  "transactionId": "string"\n}'
-            },
-            {
-                code: 500,
-                label: "Internal Server Error",
-                mediaType: "application/json",
-                example: '{\n  "code": "string",\n  "message": "string",\n  "cause": "string",\n  "reference": "string",\n  "transactionId": "string"\n}',
-                schema: '{\n  "code": "string",\n  "message": "string",\n  "cause": "string",\n  "reference": "string",\n  "transactionId": "string"\n}'
+                example: "{}",
+                schema: "{}"
             }
         ]
     }
 };
+const apiDefinitions = Object.keys(loadFromSync()).length > 0 ? loadFromSync() : defaultApiDefinitions;
 if (typeof globalThis.$RefreshHelpers$ === 'object' && globalThis.$RefreshHelpers !== null) {
     __turbopack_context__.k.registerExports(__turbopack_context__.m, globalThis.$RefreshHelpers$);
 }
@@ -310,12 +104,28 @@ if (typeof globalThis.$RefreshHelpers$ === 'object' && globalThis.$RefreshHelper
 "use strict";
 
 __turbopack_context__.s([
+    "defaultMenuSections",
+    ()=>defaultMenuSections,
     "menuSections",
     ()=>menuSections,
     "menuSectionsPort",
     ()=>menuSectionsPort
 ]);
-const menuSections = [
+// Cargar desde localStorage si están disponibles (sincronizados por el admin)
+const loadFromSync = ()=>{
+    if ("TURBOPACK compile-time falsy", 0) //TURBOPACK unreachable
+    ;
+    try {
+        const raw = window.localStorage.getItem('fie-api-menu-sections');
+        if (raw) {
+            return JSON.parse(raw);
+        }
+    } catch (error) {
+        console.warn('Error cargando menu sections sincronizados:', error);
+    }
+    return [];
+};
+const defaultMenuSections = [
     {
         id: "auth",
         title: "Autenticacion",
@@ -349,6 +159,7 @@ const menuSections = [
         ]
     }
 ];
+const menuSections = loadFromSync().length > 0 ? loadFromSync() : defaultMenuSections;
 const menuSectionsPort = {
     getSections: ()=>menuSections
 };

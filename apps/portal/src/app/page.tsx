@@ -2,9 +2,9 @@
 
 import { useEffect, useMemo, useState } from "react";
 import type { FormEvent } from "react";
-import { apiCatalog } from "@/portal/adapters/in-memory/apiCatalog";
 import { environmentPort } from "@/portal/adapters/in-memory/environments";
 import { menuSectionsPort } from "@/portal/adapters/in-memory/menuSections";
+import { defaultApiDefinitions } from "@/portal/adapters/in-memory/apiDefinitions";
 import { supportInfoPort } from "@/portal/adapters/in-memory/supportInfo";
 import { emptySolicitud } from "@/portal/adapters/in-memory/emptySolicitud";
 import { getActiveApi } from "@/portal/application/use-cases/getActiveApi";
@@ -22,6 +22,7 @@ import { ResponsesPanel } from "@/components/portal/ResponsesPanel";
 import { RightPanel } from "@/components/portal/RightPanel";
 import { Sidebar } from "@/components/portal/Sidebar";
 import { SolicitudModal } from "@/components/portal/SolicitudModal";
+import { useSyncedMenuSections, useSyncedApiDefinitions } from "@/hooks/useSyncedData";
 import type { SolicitudForm } from "@/portal/domain/solicitud";
 
 type RunMeta = {
@@ -33,9 +34,11 @@ type RunMeta = {
 const environments = environmentPort.getAll();
 const supportChannels = supportInfoPort.getSupportChannels();
 const faqs = supportInfoPort.getFaqs();
-const menuSections = menuSectionsPort.getSections();
+const defaultMenuSections = menuSectionsPort.getSections();
 
 export default function Home() {
+  const { sections: menuSections } = useSyncedMenuSections();
+  const { definitions: apiDefs } = useSyncedApiDefinitions(defaultApiDefinitions);
   const [activeApiKey, setActiveApiKey] = useState("auth");
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>(() =>
     Object.fromEntries(menuSections.map((section) => [section.id, true]))
@@ -61,9 +64,16 @@ export default function Home() {
   const [theme, setTheme] = useState<"dark" | "light">("dark");
   const [lastRunMeta, setLastRunMeta] = useState<RunMeta | undefined>(undefined);
   const [selectedEnvironment] = useState("sandbox");
+
+  // Create dynamic api catalog from synced definitions
+  const dynamicApiCatalog = useMemo(() => ({
+    getAll: () => apiDefs,
+    getByKey: (key: string) => apiDefs[key],
+  }), [apiDefs]);
+
   const activeApi = useMemo(
-    () => getActiveApi(apiCatalog, activeApiKey),
-    [activeApiKey]
+    () => getActiveApi(dynamicApiCatalog, activeApiKey),
+    [activeApiKey, dynamicApiCatalog]
   );
 
   const environmentInfo = useMemo(
@@ -99,7 +109,7 @@ export default function Home() {
   };
 
   const handleApiClick = (itemId: string, enabled: boolean) => {
-    if (!enabled || !apiCatalog.getByKey(itemId)) {
+    if (!enabled || !dynamicApiCatalog.getByKey(itemId)) {
       return;
     }
     setActiveApiKey(itemId);
@@ -243,7 +253,7 @@ export default function Home() {
       onToggleSection={toggleSection}
       onApiClick={handleApiClick}
       methodBadgeClass={methodBadgeClass}
-      apiDefinitions={apiCatalog.getAll()}
+      apiDefinitions={dynamicApiCatalog.getAll()}
     />
   );
 

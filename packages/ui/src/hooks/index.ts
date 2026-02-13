@@ -4,6 +4,8 @@
  * Custom hooks that are shared across applications.
  */
 
+'use client';
+
 import { useState, useEffect } from 'react';
 
 type Theme = 'dark' | 'light' | 'system';

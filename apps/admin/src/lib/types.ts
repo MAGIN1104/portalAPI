@@ -1,97 +1,51 @@
 // ============= API Endpoints =============
+// Tipos alineados con portal
 
-export interface ApiField {
+export type ApiResponse = {
+  code: number;
+  label: string;
+  mediaType: string;
+  example: string;
+  schema: string;
+};
+
+export type ApiField = {
   name: string;
   label: string;
-  type?: 'string' | 'number' | 'boolean' | 'object' | 'array';
-  required: boolean;
+  type?: "string" | "number" | "object";
   placeholder?: string;
-  description?: string;
-}
+  pattern?: string;
+  helper?: string;
+  required?: boolean;
+  children?: ApiField[];
+};
 
-export interface ApiDefinition {
-  id: string;
+export type ApiDefinition = {
+  id?: string;
   title: string;
-  method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
+  method: string;
   path: string;
   description: string;
-  category: string;
   sandbox: string;
-  production?: string;
-  headers: Array<[string, string]>;
-  requiresAuth: boolean;
+  headers: [string, string][];
   fields: ApiField[];
+  requiresAuth?: boolean;
   request: string;
   response: string;
-  createdAt?: string;
-  updatedAt?: string;
-}
+  responses: ApiResponse[];
+};
 
-export interface ApiEndpointsResponse {
-  data: ApiDefinition[];
-}
-
-export interface ApiConfigResponse {
-  endpoints: {
-    data: ApiDefinition[];
-    count: number;
-    categories: string[];
-  };
-  authTypes: {
-    data: AuthType[];
-    count: number;
-    active: number;
-  };
-  authGroups: {
-    data: AuthGroup[];
-    count: number;
-  };
-  version: string;
-  lastUpdated: string;
-}
-
-// ============= Auth Types & Groups =============
-
-export interface AuthType {
+// Menu sections alineados con portal
+export type MenuItem = {
   id: string;
-  name: string;
-  description: string;
-  icon?: string;
-  requiredFields: string[];
-  category: 'static' | 'dynamic' | 'qr' | 'oauth' | 'custom';
-  isActive: boolean;
-  createdAt?: string;
-  updatedAt?: string;
-}
+  label: string;
+  enabled: boolean;
+};
 
-export interface AuthGroup {
+export type MenuSection = {
   id: string;
-  name: string;
-  description: string;
-  authTypes: string[];
-  endpoint?: string;
-  metadata?: Record<string, unknown>;
-}
+  title: string;
+  items: MenuItem[];
+};
 
-export interface AuthTypesResponse {
-  data: AuthType[];
-}
 
-export interface AuthGroupsResponse {
-  data: AuthGroup[];
-  authTypes?: AuthType[];
-}
-
-// ============= Combined Config Response =============
-
-export interface AdminConfigResponse {
-  endpoints: ApiDefinition[];
-  authTypes: AuthType[];
-  categories: string[];
-}
-
-// ============= Error Response =============
-
-export interface ErrorResponse {
-  error: string;
-}
