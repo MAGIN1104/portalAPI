@@ -1,6 +1,7 @@
 
 "use client";
 import { useState } from 'react';
+import Image from 'next/image';
 import { FaUser, FaLock, FaEye, FaEyeSlash } from 'react-icons/fa';
 
 type LoginFormProps = {
@@ -27,7 +28,7 @@ export default function LoginForm({ title = 'FIE API Admin', subtitle = 'Gestió
         style={{ minWidth: 0 }}>
         <div className="flex flex-col items-center gap-2 py-8 px-4 sm:px-6 bg-white dark:bg-[#23272f] w-full">
           <div className="flex items-center justify-center bg-[#f5f6fa] dark:bg-[#23272f] rounded-full shadow h-20 w-20 mb-2 p-2 border-2 border-[#e0e7ff] dark:border-[#353945]">
-            <img src="/logo-fie.svg" alt="FIE Logo" className="h-14 w-14 object-contain" />
+            <Image src="/logo-fie.svg" alt="FIE Logo" width={56} height={56} className="h-14 w-14 object-contain" priority />
           </div>
           <h1 className="font-display text-2xl font-bold text-[#1a1a2e] dark:text-white text-center">{title}</h1>
           <p className="mt-1 text-base text-[#5c5c7a] dark:text-[#b0b0c3] text-center">{subtitle}</p>
